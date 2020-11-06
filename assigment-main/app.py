@@ -1,4 +1,4 @@
-%%writefile app.py
+# %%writefile app.py
 import pickle
 #pickle.dump(kmeans,open('unsupervisedmodels.pkl','wb'))
 import streamlit as st
