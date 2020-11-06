@@ -1,10 +1,44 @@
-# %%writefile app.py
+%%writefile app.py
+import pickle
+#pickle.dump(kmeans,open('unsupervisedmodels.pkl','wb'))
+import streamlit as st
 
-features = new_dataset[['CountryName','StringencyLegacyIndexForDisplay','StringencyIndexForDisplay',	'StringencyIndex','StringencyLegacyIndex',
-              'ContainmentHealthIndexForDisplay','ContainmentHealthIndex','GovernmentResponseIndexForDisplay','ConfirmedCases','ConfirmedDeaths',
-              'EconomicSupportIndexForDisplay','E2_Debt/contract relief','EconomicSupportIndex','C3_Cancel public events','C1_School closing']]
-select = VarianceThreshold()
-features_selected = select.fit_transform(features)
+# -*- coding: utf-8 -*-
+"""Assignment3.ipynb
+"""
+
+import pandas as pd
+
+dataset = pd.read_csv('https://raw.githubusercontent.com/AnthonyBenjaminSakala4/ML_Assignment_3/main/assignment3_dataset.csv')
+
+null_counts = dataset.isnull().sum().sort_values()
+selected = null_counts[null_counts < 10000 ]
+
+percentage = 100 * dataset.isnull().sum() / len(dataset)
+
+data_types = dataset.dtypes
+
+missing_values_table = pd.concat([null_counts, percentage, data_types], axis=1)
+
+col=['CountryName','Date','StringencyLegacyIndexForDisplay','StringencyIndexForDisplay','ContainmentHealthIndexForDisplay','GovernmentResponseIndexForDisplay',
+'EconomicSupportIndexForDisplay','C8_International travel controls','C1_School closing','C3_Cancel public events','C2_Workplace closing','C4_Restrictions on gatherings',
+'C6_Stay at home requirements','C7_Restrictions on internal movement','H1_Public information campaigns','E1_Income support','C5_Close public transport','E2_Debt/contract relief','StringencyLegacyIndex','H3_Contact tracing','StringencyIndex','ContainmentHealthIndex','E4_International support','EconomicSupportIndex','E3_Fiscal measures','H5_Investment in vaccines','ConfirmedCases','ConfirmedDeaths']
+
+new_dataset=dataset[col]
+dataset_new= new_dataset.dropna()
+
+from sklearn.preprocessing import LabelEncoder
+dataset_new['CountryName']=LabelEncoder().fit_transform(dataset_new['CountryName'])
+
+X=dataset_new[['CountryName','StringencyLegacyIndexForDisplay','StringencyIndexForDisplay',	'StringencyIndex','StringencyLegacyIndex','ContainmentHealthIndexForDisplay','ContainmentHealthIndex','GovernmentResponseIndexForDisplay','ConfirmedCases','ConfirmedDeaths','EconomicSupportIndexForDisplay','E2_Debt/contract relief','EconomicSupportIndex','C3_Cancel public events','C1_School closing']]
+
+from sklearn.feature_selection import VarianceThreshold
+
+selector = VarianceThreshold()
+x= selector.fit_transform(X)
+
+df_first_half = x[:5000]
+df_second_half = x[5000:]
 
 # Commented out IPython magic to ensure Python compatibility.
 from sklearn.cluster import KMeans
@@ -16,8 +50,8 @@ import streamlit as st
 
 model = KMeans(n_clusters = 6)
 
-pca = PCA(n_components=2).fit(features_selected)
-pca_2d = pca.transform(features_selected)
+pca = PCA(n_components=2).fit(x)
+pca_2d = pca.transform(x)
 
 model.fit(pca_2d)
 
@@ -26,7 +60,7 @@ labels = model.predict(pca_2d)
 first = pca_2d[:, 0]
 second = pca_2d[:, 1]
 plt.scatter(first, second, c = labels)
-plt.scatter(model.cluster_centers_[:,0],model.cluster_centers_[:,1],color='purple',marker='*',label='centroid')
+plt.scatter(model.cluster_centers_[:,0],model.cluster_centers_[:,1],color='black',marker='*',label='centroid')
 
 kmeans = KMeans(n_clusters=10)
 kmeans.fit(df_first_half)
@@ -58,14 +92,13 @@ import numpy as np
 
 # kmeans=pickle.load(open('unsupervisedmodels.pkl','rb')) 
 
-
 def predict_kmeans(CountryName,StringencyLegacyIndexForDisplay,StringencyIndexForDisplay,	StringencyIndex,StringencyLegacyIndex,ContainmentHealthIndexForDisplay,ContainmentHealthIndex,GovernmentResponseIndexForDisplay,ConfirmedCases,ConfirmedDeaths,EconomicSupportIndexForDisplay,E2_Debtcontractrelief,EconomicSupportIndex,C3_Cancelpublicevents,C1_Schoolclosing):
     input=np.array([[CountryName,StringencyLegacyIndexForDisplay,StringencyIndexForDisplay,	StringencyIndex,StringencyLegacyIndex,ContainmentHealthIndexForDisplay,ContainmentHealthIndex,GovernmentResponseIndexForDisplay,ConfirmedCases,ConfirmedDeaths,EconomicSupportIndexForDisplay,E2_Debtcontractrelief,EconomicSupportIndex,C3_Cancelpublicevents,C1_Schoolclosing]]).astype(np.float64)
     prediction=kmeans.predict(input)
     return prediction
 
 def main():
-    st.title("Classifying Countries in clusters")
+    st.title("Classifying Countries in Clusters")
     html_temp = """
     <div style="background-color:#520236 ;padding:10px">
     <h2 style="color:white;text-align:center;">Unsupervised ML App </h2>
@@ -90,12 +123,12 @@ def main():
 
     safe_html="""  
       <div style="background-color:#F4D03F;padding:10px >
-       <h2 style="color:white;text-align:center;"> Your country is safe</h2>
+       <h2 style="color:white;text-align:center;"> Your Country Clustering is safe</h2>
        </div>
     """
     danger_html="""  
       <div style="background-color:#F08080;padding:10px >
-       <h2 style="color:black ;text-align:center;"> Your country is in danger</h2>
+       <h2 style="color:black ;text-align:center;"> Your Country Clustering is not safe</h2>
        </div>
     """
 
