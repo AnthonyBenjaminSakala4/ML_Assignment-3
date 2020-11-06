@@ -1,4 +1,11 @@
 # %%writefile app.py
+
+features = new_dataset[['CountryName','StringencyLegacyIndexForDisplay','StringencyIndexForDisplay',	'StringencyIndex','StringencyLegacyIndex',
+              'ContainmentHealthIndexForDisplay','ContainmentHealthIndex','GovernmentResponseIndexForDisplay','ConfirmedCases','ConfirmedDeaths',
+              'EconomicSupportIndexForDisplay','E2_Debt/contract relief','EconomicSupportIndex','C3_Cancel public events','C1_School closing']]
+select = VarianceThreshold()
+features_selected = select.fit_transform(features)
+
 # Commented out IPython magic to ensure Python compatibility.
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
@@ -9,8 +16,8 @@ import streamlit as st
 
 model = KMeans(n_clusters = 6)
 
-pca = PCA(n_components=2).fit(x)
-pca_2d = pca.transform(x)
+pca = PCA(n_components=2).fit(features_selected)
+pca_2d = pca.transform(features_selected)
 
 model.fit(pca_2d)
 
